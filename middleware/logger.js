@@ -1,39 +1,32 @@
+const { format } = require("date-fns");
+const { v4: uuid } = require("uuid");
 const fs = require("fs");
-const fsPromises = require('fs').promises
-const path = require('path');
-const { format } = require('date-fns')
-const {v4:uuid} = require('uuid')
+const fsPromises = require("fs").promises;
+const path = require("path");
 
-const logEvents = async (messege, logFileName) => {
-  const dateTime = format(newDate(), 'yyyyMMdd\tHH:mm:ss')
-  const logItem = `${dateTime}\t${uuid}\t${messege}\n`
+const logEvents = async (message, logFileName) => {
+  const dateTime = format(new Date(), "yyyyMMdd\tHH:mm:ss");
+  const logItem = `${dateTime}\t${uuid()}\t${message}\n`;
 
   try {
-    if (!fs.existsSync(path.join(__dirname, '../', 'logs'))) {
-      await fsPromises.mkdir(
-        path.join(__dirname, "..", "logs", logFileName),
-        logItem
-      );
+    if (!fs.existsSync(path.join(__dirname, "..", "logs"))) {
+      await fsPromises.mkdir(__dirname, "..", "logs");
     }
     await fsPromises.appendFile(
       path.join(__dirname, "..", "logs", logFileName),
       logItem
     );
-  } catch (e) {
-    console.log(e)
+  } catch (err) {
+    console.log(err);
   }
-}
+};
 
 
 const logger = (req, res, next) => {
+  logEvents(`${req.method}\t${req.url}\t${req.headers.origin}`, "reqLog.log");
+  console.log(`${req.method} ${req.path}`);
+  console.log('Request Done')
+  next();
+};
 
-  const { method, path, headers , url } = req
-  logEvents(`${method}\t${url}\t${headers.origin}`, 'reqLog.log')
-  console.log(`${method}\t${path}`)
-
-  next()
-}
-
-
-
-module.exports = {logEvents , logger}
+module.exports = { logEvents, logger };
